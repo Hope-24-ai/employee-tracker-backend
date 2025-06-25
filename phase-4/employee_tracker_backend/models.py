@@ -7,6 +7,7 @@ class Employee(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    department = db.Column(db.String)
     position = db.Column(db.String, nullable=False)
     salary = db.Column(db.Float, nullable=True)
 

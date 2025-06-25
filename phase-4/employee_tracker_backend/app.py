@@ -1,8 +1,8 @@
 from flask import Flask
 from flask_restful import Api
 from flask_migrate import Migrate
-from models import db
-from login import Login
+from .models import db
+
 
 app = Flask(__name__)
 
@@ -16,7 +16,7 @@ migrate = Migrate(app, db)
 
 # API setup
 api = Api(app)
-api.add_resource(Login, "/login")
+
 
 @app.route("/")
 def home():
