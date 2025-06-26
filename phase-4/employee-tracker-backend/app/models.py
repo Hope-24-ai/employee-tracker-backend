@@ -16,8 +16,15 @@ class Admin(db.Model):
     password = db.Column(db.String)
 
 # --- Employee Model ---
-class Employee(db.Model):
+class Employee(db.Model,SerializerMixin):
     __tablename__ = 'employees'
+
+    serialize_rules = (
+        "-department.employees",
+        "-role.employees",
+        "-attendances.employee",
+        "-reviews.employee"
+    )
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
@@ -26,6 +33,8 @@ class Employee(db.Model):
 
     # Relationship
     leave_applications = db.relationship('LeaveApplication', back_populates='employee', cascade="all, delete-orphan")
+    reviews = db.relationship('PerformanceReview', back_populates='employee', cascade='all, delete-orphan')
+
 
 # --- LeaveApplication Model ---
 class LeaveApplication(db.Model):
