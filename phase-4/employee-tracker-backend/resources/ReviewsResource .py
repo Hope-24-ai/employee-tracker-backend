@@ -56,3 +56,15 @@ class ReviewDetailResource(Resource):
                 setattr(review, field, data[field])
         db.session.commit()
         return make_response(review.to_dict(), 200)
+    
+    @jwt_required()
+    def delete(self, id):
+        user = current_user()
+        review = PerformanceReview.query.get_or_404(id)
+
+        if user.role_name != "Manager" or review.employee.department_id != user.department_id:
+            return make_response({"error": "Forbidden"}, 403)
+
+        db.session.delete(review)
+        db.session.commit()
+        return {}, 204
