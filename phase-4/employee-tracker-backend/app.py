@@ -1,27 +1,18 @@
+
+
 from flask import Flask
-from flask_restful import Api
-from flask_migrate import Migrate
-from models import db
-from login import Login
+from flask_cors import CORS
+from app.models import db
+from login import login_bp
 
 app = Flask(__name__)
+app.secret_key = "super-secret"  # Replace with a secure key in production
 
-# DB config
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///employees.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# ✅ Allow the React frontend origin and enable credentials (e.g. session cookies)
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 
-# Init extensions
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db.init_app(app)
-migrate = Migrate(app, db)
-
-# API setup
-api = Api(app)
-api.add_resource(Login, "/login")
-
-@app.route("/")
-def home():
-    return "🎉 Flask backend is working!"
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
+app.register_blueprint(login_bp)

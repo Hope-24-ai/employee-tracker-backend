@@ -1,39 +1,41 @@
-from flask import Blueprint, request, jsonify, session
-from app.models import db, Admin, Employee
+# app/routes/login_route.py
+from flask import request, jsonify, session
 from werkzeug.security import check_password_hash
+from app.models import db, Admin, Employee  # Update to your actual models
 
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
-login_bp = Blueprint('login', __name__)
-
-@login_bp.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST", "OPTIONS"])
 def login():
+    if request.method == "OPTIONS":
+        # CORS preflight support
+        response = jsonify({})
+        response.status_code = 204
+        return response
+
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
 
-    # Check Admin
+    # Check Admin first
     admin = Admin.query.filter_by(email=email).first()
     if admin and check_password_hash(admin.password, password):
         session["user_id"] = admin.id
         session["role"] = "admin"
         return jsonify({
+            "name": admin.name,
             "role": "admin",
-            "email": admin.email,
-            "name": admin.name
+            "greeting": f"Welcome back, {admin.name}!"
         }), 200
 
-    # Check Employee
+    # Then check Employee
     employee = Employee.query.filter_by(email=email).first()
     if employee and check_password_hash(employee.password, password):
         session["user_id"] = employee.id
         session["role"] = "employee"
         return jsonify({
+            "name": employee.name,
             "role": "employee",
-            "email": employee.email,
-            "name": employee.name
+            "greeting": f"Hello {employee.name}!"
         }), 200
 
+    # If not found or password wrong
     return jsonify({"error": "Invalid credentials"}), 401
