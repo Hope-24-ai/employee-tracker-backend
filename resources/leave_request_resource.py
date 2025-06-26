@@ -1,64 +1,77 @@
-# resources/leave_request_resource.py
-from flask_restful import Resource
-from models import db, LeaveRequest
-from flask import request
+
+
+from flask_restful import Resource, reqparse
+from models import db, LeaveRequest 
+from datetime import date 
+
+leave_parser = reqparse.RequestParser()
+leave_parser.add_argument('employee_id', type=int, required=True, help='Employee ID is required', location='json')
+leave_parser.add_argument('leave_type', type=str, required=True, help='Leave type is required', location='json')
+leave_parser.add_argument('start_date', type=str, required=True, help='Start date is required (YYYY-MM-DD)', location='json')
+leave_parser.add_argument('end_date', type=str, required=True, help='End date is required (YYYY-MM-DD)', location='json')
+leave_parser.add_argument('status', type=str, location='json')
 
 class LeaveRequestListResource(Resource):
     def get(self):
-        leaves = LeaveRequest.query.all()
-        return [
-            {
-                "id": l.id,
-                "employeeId": l.employeeId,
-                "type": l.type,
-                "startDate": l.startDate,
-                "endDate": l.endDate,
-                "reason": l.reason,
-                "status": l.status
-            }
-            for l in leaves
-        ], 200
+        """Get all leave requests"""
+        leave_requests = LeaveRequest.query.all()
+        return [req.to_dict() for req in leave_requests], 200
 
     def post(self):
-        data = request.get_json()
-        leave = LeaveRequest(
-            employeeId=data["employeeId"],
-            type=data["type"],
-            startDate=data["startDate"],
-            endDate=data["endDate"],
-            reason=data.get("reason", ""),
-            status=data.get("status", "Pending")
+        """Create a new leave request"""
+        args = leave_parser.parse_args()
+
+        try:
+            start_date_obj = date.fromisoformat(args['start_date'])
+            end_date_obj = date.fromisoformat(args['end_date'])
+        except ValueError:
+            return {'message': 'Invalid date format. Use YYYY-MM-DD.'}, 400
+
+        new_request = LeaveRequest(
+            employee_id=args['employee_id'],
+            leave_type=args['leave_type'],
+            start_date=start_date_obj,
+            end_date=end_date_obj,
+            status=args['status']
         )
-        db.session.add(leave)
+        db.session.add(new_request)
         db.session.commit()
-        return {"message": "Leave request created"}, 201
+        return new_request.to_dict(), 201
 
 class LeaveRequestResource(Resource):
     def get(self, leave_id):
-        leave = LeaveRequest.query.get_or_404(leave_id)
-        return {
-            "id": leave.id,
-            "employeeId": leave.employeeId,
-            "type": leave.type,
-            "startDate": leave.startDate,
-            "endDate": leave.endDate,
-            "reason": leave.reason,
-            "status": leave.status
-        }, 200
+        """Get a single leave request by its ID"""
+        request = LeaveRequest.query.get(leave_id)
+        if request:
+            return request.to_dict(), 200
+        return {'message': 'Leave request not found'}, 404
 
     def put(self, leave_id):
-        leave = LeaveRequest.query.get_or_404(leave_id)
-        data = request.get_json()
-        leave.type = data.get("type", leave.type)
-        leave.startDate = data.get("startDate", leave.startDate)
-        leave.endDate = data.get("endDate", leave.endDate)
-        leave.reason = data.get("reason", leave.reason)
-        leave.status = data.get("status", leave.status)
+        """Update an existing leave request by its ID"""
+        args = leave_parser.parse_args()
+        request = LeaveRequest.query.get(leave_id)
+        if not request:
+            return {'message': 'Leave request not found'}, 404
+
+        try:
+            request.start_date = date.fromisoformat(args['start_date'])
+            request.end_date = date.fromisoformat(args['end_date'])
+        except ValueError:
+            return {'message': 'Invalid date format. Use YYYY-MM-DD.'}, 400
+
+        request.employee_id = args['employee_id']
+        request.leave_type = args['leave_type']
+        request.status = args['status']
+
         db.session.commit()
-        return {"message": "Leave request updated"}, 200
+        return request.to_dict(), 200
 
     def delete(self, leave_id):
-        leave = LeaveRequest.query.get_or_404(leave_id)
-        db.session.delete(leave)
+        """Delete a leave request by its ID"""
+        request = LeaveRequest.query.get(leave_id)
+        if not request:
+            return {'message': 'Leave request not found'}, 404
+
+        db.session.delete(request)
         db.session.commit()
-        return {"message": "Leave request deleted"}, 200
+        return {'message': 'Leave request deleted'}, 204
