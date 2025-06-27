@@ -4,8 +4,10 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Employee, PerformanceReview
 from datetime import datetime
 
+
 def current_user():
     return Employee.query.get(get_jwt_identity())
+
 
 class ReviewListResource(Resource):
     @jwt_required()
@@ -15,11 +17,10 @@ class ReviewListResource(Resource):
             reviews = PerformanceReview.query.join(Employee).filter(
                 Employee.department_id == user.department_id
             ).all()
-        else:  # employee
+        else:
             reviews = PerformanceReview.query.filter_by(employee_id=user.id).all()
 
         return make_response([r.to_dict() for r in reviews], 200)
-
     @jwt_required()
     def post(self):
         user = current_user()
@@ -45,7 +46,7 @@ class ReviewDetailResource(Resource):
         user = current_user()
         review = PerformanceReview.query.get_or_404(id)
 
-        # Manager of same department can edit
+        # Only manager of same department can edit
         if user.role_name != "Manager" or review.employee.department_id != user.department_id:
             return make_response({"error": "Forbidden"}, 403)
 
@@ -55,7 +56,7 @@ class ReviewDetailResource(Resource):
                 setattr(review, field, data[field])
         db.session.commit()
         return make_response(review.to_dict(), 200)
-
+    
     @jwt_required()
     def delete(self, id):
         user = current_user()
