@@ -3,6 +3,7 @@ from sqlalchemy import MetaData
 from datetime import datetime
 from sqlalchemy_serializer import SerializerMixin
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.associationproxy import association_proxy
 
 # Metadata for naming conventions
 convention = {
@@ -35,6 +36,30 @@ class Department(db.Model, SerializerMixin):
     employees = db.relationship('Employee', back_populates='department', cascade='all, delete-orphan')
     serialize_rules = ("-employees.department",)
 
+# ___________--------_____
+# user type
+# ___________________
+class UserType(db.Model, SerializerMixin):
+    __tablename__ = 'user_types'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    description = db.Column(db.String(225))
+
+    employees = db.relationship('Employee', back_populates='user_type')
+    serialize_rules = ("-employees.user_type",)
+    
+# _______________------_____________
+# ---------------j0b tittle---------->
+class JobTitle(db.Model, SerializerMixin):
+    __tablename__ = 'job_titles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(50), nullable=False, unique=True)
+
+    employees = db.relationship('Employee', back_populates='job_title')
+    serialize_rules = ("-employees.job_title",)
+
 # --- Employee Model ---
 class Employee(db.Model,SerializerMixin):
     __tablename__ = 'employees'
@@ -43,18 +68,37 @@ class Employee(db.Model,SerializerMixin):
         "-department.employees",
         "-role.employees",
         "-attendances.employee",
-        "-reviews.employee"
+        "-reviews.employee",
+        "-password_hash",
+        "-user_type.employees",
+        "-job_title.employees",
     )
     
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+    first_name = db.Column(db.String(50), nullable=True)
+    last_name = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(120), unique=True, nullable=False) 
+    phone = db.Column(db.String(100))
+    hire_date = db.Column(db.DateTime, default=datetime.now)
+
     password_hash = db.Column(db.String(128), nullable=False)
 
+    # FK
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    user_type_id = db.Column(db.Integer, db.ForeignKey('user_types.id'))
+    job_title_id = db.Column(db.Integer, db.ForeignKey('job_titles.id'))
+# RLNSHP
+    department = db.relationship('Department', back_populates='employees')
+    user_type = db.relationship('UserType', back_populates='employees')
+    job_title = db.relationship('JobTitle', back_populates='employees')
     # Relationship
     leave_applications = db.relationship('LeaveApplication', back_populates='employee', cascade="all, delete-orphan")
     reviews = db.relationship('PerformanceReview', back_populates='employee', cascade='all, delete-orphan')
-
+    attendances = db.relationship('Attendance', back_populates='employee', cascade='all, delete-orphan')
+  # association
+    department_name = association_proxy('department', 'name')
+    user_type_name = association_proxy('user_type', 'name')
+    job_title_name = association_proxy('job_title', 'title')
 
 # --- LeaveApplication Model ---
 class LeaveApplication(db.Model):
