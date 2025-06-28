@@ -1,10 +1,19 @@
 # models.py
-
+from sqlalchemy import MetaData
 from datetime import datetime
 from sqlalchemy_serializer import SerializerMixin
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+# Metadata for naming conventions
+convention = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+metadata = MetaData(naming_convention=convention)
+db = SQLAlchemy(metadata=metadata)
 
 # --- Admin Model ---
 class Admin(db.Model):
