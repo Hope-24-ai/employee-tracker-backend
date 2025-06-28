@@ -17,14 +17,6 @@ convention = {
 metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(metadata=metadata)
 
-# --- Admin Model ---
-class Admin(db.Model):
-    __tablename__ = 'admins'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    email = db.Column(db.String, unique=True)
-    password = db.Column(db.String)
 
 # deparmt
 class Department(db.Model, SerializerMixin):
@@ -132,6 +124,20 @@ class LeaveApplication(db.Model):
     employee = db.relationship('Employee', back_populates='leave_applications')
 
 
+# --- Attendance Model ---
+class Attendance(db.Model, SerializerMixin):
+    __tablename__ = 'attendances'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    check_in_time = db.Column(db.Time)
+    check_out_time = db.Column(db.Time)
+
+    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
+    employee = db.relationship('Employee', back_populates='attendances')
+
+    serialize_rules = ("-employee.attendances",)
+
 class PerformanceReview(db.Model, SerializerMixin):
     __tablename__ = 'performance_reviews'
 
@@ -144,4 +150,29 @@ class PerformanceReview(db.Model, SerializerMixin):
     employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
     employee = db.relationship('Employee', back_populates='reviews')
 
+    serialize_only = (
+        "id",
+        "review_date",
+        "reviewer",
+        "notes",
+        "rating",
+        "employee_id",
+        "employee_name",
+        "employee_job_title",
+        "employee_department",
+    )
+
     serialize_rules = ("-employee.reviews",)
+
+    @property
+    def employee_name(self):
+        return f"{self.employee.first_name} {self.employee.last_name}" if self.employee.first_name else self.employee.name
+
+    @property
+    def employee_job_title(self):
+        return self.employee.job_title.title if self.employee.job_title else None
+
+    @property
+    def employee_department(self):
+        return self.employee.department.name if self.employee.department else None
+
