@@ -14,6 +14,7 @@ from models import db
 from resources.auth import AuthResource
 from resources.review import ReviewListResource, ReviewDetailResource
 from resources.employee import EmployeeDetailResource ,EmployeeListResource
+from resources.job_title import JobTitleListResource, JobTitleDetailResource
 
 
 # Load environment variables 
@@ -54,7 +55,8 @@ api.add_resource(ReviewListResource, "/reviews")
 api.add_resource(ReviewDetailResource, "/reviews/<int:id>")
 api.add_resource(EmployeeListResource, "/employees")
 api.add_resource(EmployeeDetailResource, "/employees/<int:id>")
-
+api.add_resource(JobTitleListResource, "/job-titles")
+api.add_resource(JobTitleDetailResource, "/job-titles/<int:id>")
 
 
 
