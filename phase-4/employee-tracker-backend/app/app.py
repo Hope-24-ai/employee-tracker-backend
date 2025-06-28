@@ -16,7 +16,7 @@ from resources.review import ReviewListResource, ReviewDetailResource
 from resources.employee import EmployeeDetailResource ,EmployeeListResource
 from resources.job_title import JobTitleListResource, JobTitleDetailResource
 from resources.user_type import UserTypeListResource, UserTypeDetailResource
-
+from resources.department import DepartmentListResource, DepartmentDetailResource
 
 # Load environment variables 
 load_dotenv()
@@ -60,6 +60,8 @@ api.add_resource(JobTitleListResource, "/job-titles")
 api.add_resource(JobTitleDetailResource, "/job-titles/<int:id>")
 api.add_resource(UserTypeListResource, "/user-types")
 api.add_resource(UserTypeDetailResource, "/user-types/<int:id>")
+api.add_resource(DepartmentListResource, "/departments")
+api.add_resource(DepartmentDetailResource, "/departments/<int:id>")
 
 
 
