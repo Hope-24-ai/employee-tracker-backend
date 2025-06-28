@@ -10,7 +10,8 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from models import db
 
-
+# import and register resources
+from resources.auth import AuthResource
 
 
 # Load environment variables 
@@ -35,7 +36,8 @@ db.init_app(app)
 CORS(app)
 api = Api(app)
 
-
+# routes
+api.add_resource(AuthResource, '/auth/<string:action>') 
 
 
 

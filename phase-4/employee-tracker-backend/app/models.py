@@ -59,7 +59,6 @@ class Employee(db.Model,SerializerMixin):
 
     serialize_rules = (
         "-department.employees",
-        "-role.employees",
         "-attendances.employee",
         "-reviews.employee",
         "-password_hash",
