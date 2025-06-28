@@ -36,6 +36,15 @@ db.init_app(app)
 CORS(app)
 api = Api(app)
 
+#  JWT Unauthorized Handling 
+@jwt.unauthorized_loader
+def missing_token(error):
+    return {
+        "message": "Authorization required",
+        "success": False,
+        "errors": ["Authorization token is required"],
+    }, 401
+
 # routes
 api.add_resource(AuthResource, '/auth/<string:action>') 
 
