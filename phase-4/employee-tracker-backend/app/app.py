@@ -15,6 +15,7 @@ from resources.auth import AuthResource
 from resources.review import ReviewListResource, ReviewDetailResource
 from resources.employee import EmployeeDetailResource ,EmployeeListResource
 from resources.job_title import JobTitleListResource, JobTitleDetailResource
+from resources.user_type import UserTypeListResource, UserTypeDetailResource
 
 
 # Load environment variables 
@@ -57,6 +58,8 @@ api.add_resource(EmployeeListResource, "/employees")
 api.add_resource(EmployeeDetailResource, "/employees/<int:id>")
 api.add_resource(JobTitleListResource, "/job-titles")
 api.add_resource(JobTitleDetailResource, "/job-titles/<int:id>")
+api.add_resource(UserTypeListResource, "/user-types")
+api.add_resource(UserTypeDetailResource, "/user-types/<int:id>")
 
 
 
