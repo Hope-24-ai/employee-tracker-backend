@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Employee, PerformanceReview
 from datetime import datetime
 
-
+# Helper function to get the current logged in user
 def current_user():
     return Employee.query.get(get_jwt_identity())
 
@@ -13,20 +13,25 @@ class ReviewListResource(Resource):
     @jwt_required()
     def get(self):
         user = current_user()
-        if user.role_name == "Manager":
+        # If user is a manager fetch all reviews for employees in their department
+        if user.user_type_name == "Manager":
             reviews = PerformanceReview.query.join(Employee).filter(
                 Employee.department_id == user.department_id
             ).all()
+        # Otherwise--> show only the reviews of the employee themselves
         else:
             reviews = PerformanceReview.query.filter_by(employee_id=user.id).all()
 
         return make_response([r.to_dict() for r in reviews], 200)
+    
     @jwt_required()
     def post(self):
         user = current_user()
-        if user.role_name != "Manager":
+        # Only managers can add new reviews
+        if user.user_type_name != "Manager":
             return make_response({"error": "Only managers can add reviews"}, 403)
-
+            
+        # Create a new review for an employee
         data = request.get_json()
         review = PerformanceReview(
             employee_id=data["employee_id"],
@@ -47,9 +52,9 @@ class ReviewDetailResource(Resource):
         review = PerformanceReview.query.get_or_404(id)
 
         # Only manager of same department can edit
-        if user.role_name != "Manager" or review.employee.department_id != user.department_id:
+        if user.user_type_name != "Manager" or review.employee.department_id != user.department_id:
             return make_response({"error": "Forbidden"}, 403)
-
+        # Update editable fields --->notes and rating<---
         data = request.get_json()
         for field in ["notes", "rating"]:
             if field in data:
@@ -61,8 +66,8 @@ class ReviewDetailResource(Resource):
     def delete(self, id):
         user = current_user()
         review = PerformanceReview.query.get_or_404(id)
-
-        if user.role_name != "Manager" or review.employee.department_id != user.department_id:
+        # Managers can only delete reviews within their own department
+        if user.user_type_name != "Manager" or review.employee.department_id != user.department_id:
             return make_response({"error": "Forbidden"}, 403)
 
         db.session.delete(review)
