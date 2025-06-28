@@ -1,9 +1,10 @@
-
+import re
 from sqlalchemy import MetaData
 from datetime import datetime
 from sqlalchemy_serializer import SerializerMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import validates
 
 # Metadata for naming conventions
 convention = {
@@ -99,6 +100,22 @@ class Employee(db.Model,SerializerMixin):
     department_name = association_proxy('department', 'name')
     user_type_name = association_proxy('user_type', 'name')
     job_title_name = association_proxy('job_title', 'title')
+
+    def set_password(self, raw_password):
+        from flask_bcrypt import generate_password_hash
+        self.password_hash = generate_password_hash(raw_password).decode('utf-8')
+
+    def verify_password(self, raw_password):
+        from flask_bcrypt import check_password_hash
+        return check_password_hash(self.password_hash, raw_password)
+
+    @validates("email")
+    def validate_email(self, key, value):
+        normalized = value.strip().lower()
+        regex = r"[A-Za-z][A-Za-z0-9_.]*@[A-Za-z0-9]+\.[a-z]{2,}"
+        if not re.match(regex, normalized):
+            raise ValueError("Invalid email format")
+        return normalized
 
 # --- LeaveApplication Model ---
 class LeaveApplication(db.Model):
