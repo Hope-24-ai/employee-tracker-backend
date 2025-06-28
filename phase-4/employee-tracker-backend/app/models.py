@@ -1,4 +1,4 @@
-# models.py
+
 from sqlalchemy import MetaData
 from datetime import datetime
 from sqlalchemy_serializer import SerializerMixin
@@ -23,6 +23,17 @@ class Admin(db.Model):
     name = db.Column(db.String)
     email = db.Column(db.String, unique=True)
     password = db.Column(db.String)
+
+# deparmt
+class Department(db.Model, SerializerMixin):
+    __tablename__ = 'departments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    description = db.Column(db.String(225))
+
+    employees = db.relationship('Employee', back_populates='department', cascade='all, delete-orphan')
+    serialize_rules = ("-employees.department",)
 
 # --- Employee Model ---
 class Employee(db.Model,SerializerMixin):
