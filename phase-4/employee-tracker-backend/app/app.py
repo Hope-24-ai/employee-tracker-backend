@@ -13,6 +13,7 @@ from models import db
 # import and register resources
 from resources.auth import AuthResource
 from resources.review import ReviewListResource, ReviewDetailResource
+from resources.employee import EmployeeDetailResource ,EmployeeListResource
 
 
 # Load environment variables 
@@ -37,6 +38,7 @@ db.init_app(app)
 CORS(app)
 api = Api(app)
 
+
 #  JWT Unauthorized Handling 
 @jwt.unauthorized_loader
 def missing_token(error):
@@ -50,6 +52,8 @@ def missing_token(error):
 api.add_resource(AuthResource, '/auth/<string:action>') 
 api.add_resource(ReviewListResource, "/reviews")
 api.add_resource(ReviewDetailResource, "/reviews/<int:id>")
+api.add_resource(EmployeeListResource, "/employees")
+api.add_resource(EmployeeDetailResource, "/employees/<int:id>")
 
 
 
