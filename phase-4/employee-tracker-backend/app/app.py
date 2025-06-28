@@ -12,6 +12,7 @@ from models import db
 
 # import and register resources
 from resources.auth import AuthResource
+from resources.review import ReviewListResource, ReviewDetailResource
 
 
 # Load environment variables 
@@ -47,7 +48,8 @@ def missing_token(error):
 
 # routes
 api.add_resource(AuthResource, '/auth/<string:action>') 
-
+api.add_resource(ReviewListResource, "/reviews")
+api.add_resource(ReviewDetailResource, "/reviews/<int:id>")
 
 
 
