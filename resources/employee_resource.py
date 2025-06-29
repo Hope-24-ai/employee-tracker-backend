@@ -1,20 +1,21 @@
-
-
 from flask_restful import Resource, reqparse
 from models import db, Employee
-from flask import jsonify
+from flask import request, jsonify
 
 class EmployeeListResource(Resource):
     def get(self):
         try:
+            # ✅ HR Manager only can view all employees
+            role = request.headers.get('Role', '').strip().lower()
+            if role != 'human resource manager':
+                return {'message': 'Access denied: HR Manager role required'}, 403
+
             employees = Employee.query.all()
-           
             return jsonify([employee.to_dict() for employee in employees])
         except Exception as e:
-            
             print(f"Error fetching employees: {e}")
             import traceback
-            traceback.print_exc() 
+            traceback.print_exc()
             return {'message': 'Internal Server Error'}, 500
 
     def post(self):
@@ -31,9 +32,14 @@ class EmployeeListResource(Resource):
         args = parser.parse_args()
 
         try:
-            
             from datetime import datetime
             args['hireDate'] = datetime.strptime(args['hireDate'], '%Y-%m-%d').date()
+
+            # ✅ Check if employeeId or email already exists
+            if Employee.query.filter_by(employeeId=args['employeeId']).first():
+                return {'message': 'Employee ID already exists'}, 409
+            if Employee.query.filter_by(email=args['email']).first():
+                return {'message': 'Email already in use'}, 409
 
             new_employee = Employee(**args)
             db.session.add(new_employee)
@@ -44,6 +50,7 @@ class EmployeeListResource(Resource):
             import traceback
             traceback.print_exc()
             return {'message': 'Error creating employee'}, 500
+
 
 class EmployeeResource(Resource):
     def get(self, employee_id):
@@ -71,7 +78,6 @@ class EmployeeResource(Resource):
         try:
             for key, value in args.items():
                 if value is not None:
-                    
                     if key == 'hireDate':
                         from datetime import datetime
                         setattr(employee, key, datetime.strptime(value, '%Y-%m-%d').date())

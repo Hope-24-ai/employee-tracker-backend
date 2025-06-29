@@ -1,27 +1,31 @@
+import os
+import sys
 from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-import sys
-import os
+# Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from config import Config  # your app config with SQLALCHEMY_DATABASE_URI
-from models import db  # import your SQLAlchemy db instance (metadata is here)
+# Import Flask config and db metadata
+from config import Config  # Ensure this defines SQLALCHEMY_DATABASE_URI
+from models import db  # Ensure db = SQLAlchemy()
 
-# this is Alembic Config object, must be imported after alembic.context
+# Alembic Config object
 config = context.config
 
-# Set SQLAlchemy URL from your Flask config
+# Set SQLAlchemy URL from Flask config
 config.set_main_option('sqlalchemy.url', Config.SQLALCHEMY_DATABASE_URI)
 
-# Interpret the config file for Python logging.
+# Interpret the config file for logging setup
 fileConfig(config.config_file_name)
 
-# Set the target metadata for 'autogenerate'
+# Set target metadata for 'autogenerate'
 target_metadata = db.metadata
 
 def run_migrations_offline():
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -35,6 +39,7 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
+    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix='sqlalchemy.',
@@ -44,13 +49,14 @@ def run_migrations_online():
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
         )
 
         with context.begin_transaction():
             context.run_migrations()
 
 
+# Entry point
 if context.is_offline_mode():
     run_migrations_offline()
 else:
